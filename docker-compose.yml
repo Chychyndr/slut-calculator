@@ -1,0 +1,10 @@
+services:
+  slut-calculator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: slut-calculator:latest
+    container_name: slut-calculator
+    ports:
+      - "8080:80"
+    restart: unless-stopped

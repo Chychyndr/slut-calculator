@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="ru" data-theme="darkreader">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="dark" />
+  <meta name="theme-color" content="#0b0d12" />
+  <meta name="darkreader-lock" />
+  <title>Калькулятор шалав</title>
+  <meta name="description" content="Псевдонаучный мем-калькулятор свидательной ауры с категориями, вопросами и нелинейной формулой." />
+  <link rel="icon" href="data:," />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="page-shell">
+    <header class="topbar">
+      <h1>Калькулятор шалав</h1>
+    </header>
+
+    <main>
+      <section class="panel" id="setupPanel">
+        <div class="section-head">
+          <div>
+            <h2>Настройка</h2>
+            <p>Выбери режим, категории и размер анкеты.</p>
+          </div>
+        </div>
+
+        <div class="setup-grid">
+          <label class="field field--wide">
+            <span>Имя или ник</span>
+            <input id="userName" type="text" placeholder="например: Chychyndr" maxlength="32" />
+          </label>
+
+          <div class="field field--wide">
+            <span>Режим</span>
+            <div class="mode-grid" id="modeGrid">
+              <button class="mode-card is-active" type="button" data-mode="mixed">
+                <strong>Смешанный</strong>
+                <small>Баланс обычных и мемных вопросов</small>
+              </button>
+              <button class="mode-card" type="button" data-mode="serious">
+                <strong>Серьезный</strong>
+                <small>Больше адекватных параметров</small>
+              </button>
+              <button class="mode-card" type="button" data-mode="funny">
+                <strong>Мемный</strong>
+                <small>Больше кринжа и абсурда</small>
+              </button>
+            </div>
+          </div>
+
+          <label class="field">
+            <span>Размер анкеты</span>
+            <select id="questionLimit">
+              <option value="40">Быстро, 40 вопросов</option>
+              <option value="80" selected>Нормально, 80 вопросов</option>
+              <option value="120">Долго, 120 вопросов</option>
+              <option value="all">Все выбранные вопросы</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>Стиль результата</span>
+            <select id="resultStyle">
+              <option value="balanced" selected>Обычный</option>
+              <option value="roast">Жесткий</option>
+              <option value="soft">Мягкий</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="category-box">
+          <div class="category-box__top">
+            <h3>Категории</h3>
+            <div class="small-actions">
+              <button class="text-button" id="selectAllCategories" type="button">Все</button>
+              <button class="text-button" id="clearCategories" type="button">Снять</button>
+            </div>
+          </div>
+          <div class="category-grid" id="categoryGrid"></div>
+        </div>
+
+        <div class="actions-row">
+          <button class="primary-button" id="buildQuizButton" type="button">Начать</button>
+          <span id="setupInfo" class="muted"></span>
+        </div>
+      </section>
+
+      <section class="panel quiz-panel is-hidden" id="quizPanel">
+        <div class="quiz-top">
+          <button class="link-button" id="backToSetupButton" type="button">Назад</button>
+          <div class="progress-wrap">
+            <div class="progress-line"><span id="progressBar"></span></div>
+            <small id="progressText">0%</small>
+          </div>
+        </div>
+
+        <form id="quizForm" class="question-stage"></form>
+
+        <div class="quiz-bottom">
+          <button class="ghost-button" id="prevQuestionButton" type="button">Назад</button>
+          <button class="secondary-button" id="earlyCalculateButton" type="button">Посчитать сейчас</button>
+          <button class="primary-button" id="nextQuestionButton" type="button">Дальше</button>
+          <button class="primary-button is-hidden" id="calculateButton" type="button">Получить результат</button>
+        </div>
+
+        <p id="quizInfo" class="quiz-message"></p>
+      </section>
+
+      <section class="panel result-panel is-hidden" id="resultPanel">
+        <div class="result-top">
+          <div>
+            <p class="eyebrow">Результат</p>
+            <h2 id="resultName">Результат</h2>
+          </div>
+          <div class="result-actions">
+            <button class="secondary-button is-hidden" id="continueQuizButton" type="button">Продолжить тест</button>
+            <button class="ghost-button" id="recalculateButton" type="button">Пройти еще раз</button>
+          </div>
+        </div>
+
+        <div class="result-grid">
+          <div class="score-card">
+            <div class="score-ring" id="scoreRing">
+              <span id="chanceValue">0%</span>
+            </div>
+            <p id="mainVerdict"></p>
+          </div>
+
+          <div class="details-card">
+            <h3>Почему так вышло</h3>
+            <ul id="reasonList"></ul>
+          </div>
+        </div>
+
+        <div class="category-result">
+          <h3>Разбор по категориям</h3>
+          <div id="categoryScores" class="category-score-list"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script type="module" src="./src/app.js"></script>
+</body>
+</html>
