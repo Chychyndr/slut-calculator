@@ -20,24 +20,27 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Скачать репозиторий
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Установить Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - name: Install dependencies
+      - name: Настроить GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Установить зависимости
         run: npm install
 
-      - name: Check JavaScript
+      - name: Проверить JavaScript
         run: npm run check
 
-      - name: Build
+      - name: Собрать сайт
         run: npm run build
 
-      - name: Upload Pages artifact
+      - name: Загрузить сайт для GitHub Pages
         uses: actions/upload-pages-artifact@v3
         with:
           path: ./dist
@@ -51,6 +54,6 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
-      - name: Deploy to GitHub Pages
+      - name: Опубликовать сайт
         id: deployment
         uses: actions/deploy-pages@v4
