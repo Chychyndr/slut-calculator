@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Heart percent logo">
+  <path
+    fill="#ff2f7d"
+    d="M22.5 48
+       L17 43
+       C15.5 41.6 5 32.4 5 23.5
+       C5 17.5 9.5 13.5 14.8 13.5
+       C18.2 13.5 20.8 15.3 22.5 18.2
+       C24.2 15.3 26.8 13.5 30.2 13.5
+       C35.5 13.5 40 17.5 40 23.5
+       C40 32.4 29.5 41.6 28 43
+       Z"
+  />
+
+  <circle cx="47" cy="21" r="4.2" fill="#f7f7f7" />
+  <circle cx="57" cy="41" r="4.2" fill="#f7f7f7" />
+
+  <line
+    x1="59"
+    y1="17"
+    x2="45"
+    y2="45"
+    stroke="#f7f7f7"
+    stroke-width="5.2"
+    stroke-linecap="round"
+  />
+</svg>
