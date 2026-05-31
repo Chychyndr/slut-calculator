@@ -94,40 +94,6 @@ docker run --rm -p 8080:80 slut-calculator
 
 В Docker проект собирается через Vite, а готовая папка `dist/` раздается через Nginx.
 
-## Деплой на GitHub Pages
-
-Репозиторий лучше назвать так:
-
-```text
-slut-calculator
-```
-
-Тогда сайт будет доступен примерно по адресу:
-
-```text
-https://Chychyndr.github.io/slut-calculator/
-```
-
-Что сделать:
-
-1. Создай публичный репозиторий `slut-calculator`.
-2. Загрузи в него все файлы проекта.
-3. Открой `Settings -> Pages`.
-4. В `Build and deployment` выбери `GitHub Actions`.
-5. Запушь изменения в ветку `main`.
-6. Workflow из `.github/workflows/deploy.yml` сам соберет проект и выложит папку `dist/`.
-
-Команды для первого пуша:
-
-```bash
-git init
-git add .
-git commit -m "Initial commit"
-git branch -M main
-git remote add origin https://github.com/Chychyndr/slut-calculator.git
-git push -u origin main
-```
-
 ## Деплой на Vercel или Netlify
 
 Проект уже содержит `vercel.json` и `netlify.toml`.
@@ -145,31 +111,3 @@ Output directory: dist
 Build command: npm run build
 Publish directory: dist
 ```
-
-## Структура
-
-```text
-slut-calculator/
-├─ .github/workflows/deploy.yml
-├─ src/
-│  ├─ app.js
-│  ├─ formula.js
-│  └─ questions.js
-├─ index.html
-├─ styles.css
-├─ package.json
-├─ vite.config.js
-├─ Dockerfile
-├─ docker-compose.yml
-├─ nginx.conf
-├─ .dockerignore
-├─ .gitignore
-├─ netlify.toml
-├─ vercel.json
-├─ LICENSE
-└─ README.md
-```
-
-## Лицензия
-
-MIT. Можно свободно использовать, менять и распространять проект, если сохранить текст лицензии.
