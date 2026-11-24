@@ -33,100 +33,21 @@ function getAnswer(answers, id) {
   return value === undefined || value === null || value === "" ? q.default : value;
 }
 
-const idealTargets = {
-  style_score: 7,
-  skin_care: 6,
-  perfume_amount: 5,
-  voice_messages: 4,
-  confidence: 7,
-  date_budget_balance: 5,
-  initiative: 6,
-  awkwardness: 4,
-  meme_language: 5
-};
-
 function scoreRange(q, value) {
-  const v = Number(value);
-  const w = q.weight;
-  const centered = (v - 5.5) / 4.5;
-
-  if (q.effect === "positive") return centered * w;
-  if (q.effect === "negative") return -centered * w;
-
-  if (q.effect === "screenTime") {
-    if (v <= 3) return 4;
-    if (v <= 5) return 2;
-    if (v <= 7) return -3;
-    return -w;
-  }
-
-  if (q.effect === "ideal") {
-    const target = idealTargets[q.id] ?? q.default ?? 5;
-    const distance = Math.abs(v - target);
-    return clamp(1 - distance / 4.2, -1, 1) * w;
-  }
-
-  return 0;
+  const centered = (clamp(Number(value), q.min, q.max) - 5.5) / 4.5;
+  return (q.effect === "positive" ? centered : -centered) * q.weight;
 }
 
 function scoreNumber(q, value) {
-  const v = Number(value);
+  const v = clamp(Number(value), q.min, q.max);
   const w = q.weight;
-
-  if (q.scorer === "age") {
-    if (v < 14) return -w;
-    if (v < 18) return -3;
-    if (v <= 27) return w * 0.85;
-    if (v <= 35) return w * 0.55;
-    if (v <= 45) return w * 0.25;
-    return -w * 0.2;
+  switch (q.scorer) {
+    case "dotaMmr": return v === 0 ? w * 0.5 : v >= 9000 ? w * 0.4 : v >= 3000 ? -w : -w * 0.4;
+    case "gameHours": return v < 300 ? w * 0.4 : v < 2000 ? 0 : v < 6000 ? -w * 0.6 : -w;
+    case "tabs": return v <= 5 ? w * 0.5 : v <= 30 ? 0 : v <= 100 ? -w * 0.5 : -w;
+    case "packages": return v <= 2 ? 0 : v <= 10 ? w * 0.6 : -w;
+    default: return 0;
   }
-
-  if (q.scorer === "height") {
-    const target = 182;
-    const distance = Math.abs(v - target);
-    return clamp(1 - distance / 42, -0.65, 1) * w;
-  }
-
-  if (q.scorer === "replyMinutes") {
-    if (v <= 1) return -w * 0.7;
-    if (v <= 10) return w * 0.1;
-    if (v <= 90) return w;
-    if (v <= 240) return w * 0.25;
-    if (v <= 720) return -w * 0.35;
-    return -w;
-  }
-
-  if (q.scorer === "sleepHours") {
-    const distance = Math.abs(v - 7.5);
-    return clamp(1 - distance / 4, -1, 1) * w;
-  }
-
-  if (q.scorer === "dotaMmr") {
-    if (v === 0) return w * 0.55;
-    if (v < 1500) return -w * 0.15;
-    if (v < 3500) return -w * 0.45;
-    if (v < 6000) return -w * 0.75;
-    if (v < 8500) return -w * 0.55;
-    return -w * 0.35;
-  }
-
-  if (q.scorer === "gameHours") {
-    if (v === 0) return w * 0.2;
-    if (v < 500) return w * 0.1;
-    if (v < 2000) return -w * 0.25;
-    if (v < 6000) return -w * 0.65;
-    return -w;
-  }
-
-  if (q.scorer === "gameHoursSoft") {
-    if (v === 0) return 0;
-    if (v < 800) return 2;
-    if (v < 3000) return -w * 0.25;
-    return -w * 0.7;
-  }
-
-  return 0;
 }
 
 const booleanFactors = {
@@ -192,66 +113,32 @@ function yesish(value) {
   return boolPower(value) >= 0.75;
 }
 
-function noish(value) {
-  return boolPower(value) <= 0.25;
+function getRank(chance) {
+  if (chance < 5) return "экспонат палаты № 67";
+  if (chance < 15) return "биологическая ошибка";
+  if (chance < 25) return "последний онлайн на поминках";
+  if (chance < 35) return "аура в исполнительном производстве";
+  if (chance < 45) return "NPC с платным DLC";
+  if (chance < 55) return "нормис на испытательном сроке";
+  if (chance < 65) return "амбассадор шаурмы";
+  if (chance < 75) return "локальная угроза сердечкам";
+  if (chance < 85) return "генеральный директор вайба";
+  if (chance < 95) return "легенда районного чата";
+  return "первый человек, которого полюбил турникет";
 }
 
-function getRank(chance) {
-  if (chance < 5) return "социальный Чернобыль";
-  if (chance < 15) return "ходячий красный флаг";
-  if (chance < 25) return "пока только теоретик";
-  if (chance < 35) return "шанс есть, но где-то далеко";
-  if (chance < 45) return "NPC с потенциалом";
-  if (chance < 55) return "нормис на минималках";
-  if (chance < 65) return "уже можно выпускать в люди";
-  if (chance < 75) return "опасный тип";
-  if (chance < 85) return "харизматичный подозреваемый";
-  if (chance < 95) return "легенда района";
-  return "финальный босс свиданий";
-}
+const verdicts = [
+  ["Даже голубь на улице посмотрел на тебя и прибавил шаг.", "Твою анкету распечатали, сложили вчетверо и использовали как ножку стола.", "Кот всё ещё согласен сидеть с тобой. Уже неплохой старт."],
+  ["Романтика пока работает по талонам. Твой талон сгорел.", "Твой главный конкурент на свидании — бесплатный Wi-Fi. Пока он выигрывает.", "Тебе уже можно выдавать пробную версию ауры на семь дней."],
+  ["Половина ауры на месте. Вторая осталась в пункте выдачи.", "Ты настолько средний, что тебя можно использовать для калибровки калькулятора.", "Стабильно, как чайник: иногда закипаешь, зато полезный."],
+  ["Ты уже можешь зайти в кафе без фоновой музыки из хоррора.", "У тебя почти получилось. Не показывай никому свои сохранёнки.", "Сова на скакалке одобрительно подпрыгнула."],
+  ["Твоё обаяние теперь можно сдавать в аренду вместе с квартирой.", "Даже мозг мухи не смог рассчитать твою ауру. Врёшь, наверное.", "Кошку Мусю поставили тебе в рекомендации. Считай это знаком."],
+  ["Тебе достаточно моргнуть, и терминал сам напишет «одобрено».", "Слишком хорошо. Подозреваем, что анкету за тебя проходил кот в деловом костюме.", "Твой стул-шкаф гордится тобой. Впервые за всю историю комнаты."]
+];
 
 function getVerdict(chance, style) {
-  const soft = style === "soft";
-  const roast = style === "roast";
-
-  if (chance < 15) {
-    return roast
-      ? "Алгоритм увидел анкету и тихо закрыл вкладку. Тут нужен не патч, а полная переустановка личности."
-      : "Результат низкий. Больше всего мешают красные флаги, гигиена или социальная адекватность.";
-  }
-
-  if (chance < 35) {
-    return roast
-      ? "Шанс есть примерно как шанс выиграть катку с Techies в команде. Теоретически бывает, но лучше не надеяться."
-      : "Пока слабовато, но часть проблем чинится простыми вещами: уход, спокойное общение, нормальные планы.";
-  }
-
-  if (chance < 55) {
-    return soft
-      ? "Средний результат. Уже есть база, но несколько привычек сильно тянут вниз."
-      : "Ты не провалился, но система видит спорные моменты. Где-то рядом стоит стул-шкаф и смотрит на тебя.";
-  }
-
-  if (chance < 75) {
-    return roast
-      ? "В целом живой, местами даже интересный. Не начинай рассказывать про MMR, и все может быть нормально."
-      : "Хороший результат. Есть понятная база: общение, уход, самостоятельность или нормальная социальная прошивка.";
-  }
-
-  if (chance < 90) {
-    return roast
-      ? "Опасный уровень. Главное не поверить в себя настолько, чтобы начать говорить 'я сигма' вслух."
-      : "Сильный результат. Анкета показывает уверенность, нормальную бытовую базу и приемлемый уровень кринжа.";
-  }
-
-  return roast
-    ? "Почти финальный босс. Либо ты правда хорош, либо слишком красиво соврал анкете. Алгоритм подозревает второе."
-    : "Очень высокий результат. Система нашла мало слабых мест, но слишком идеальные ответы тоже выглядят подозрительно.";
-}
-
-function addCombo(reasons, rawDelta, text, hiddenReasons) {
-  hiddenReasons.push({ score: rawDelta, text, combo: true });
-  return rawDelta;
+  const index = chance < 15 ? 0 : chance < 35 ? 1 : chance < 55 ? 2 : chance < 75 ? 3 : chance < 90 ? 4 : 5;
+  return verdicts[index][style === "roast" ? 1 : style === "soft" ? 2 : 0];
 }
 
 export function calculateAura({ selectedQuestions, answers, userName = "", resultStyle = "balanced" }) {
@@ -290,132 +177,35 @@ export function calculateAura({ selectedQuestions, answers, userName = "", resul
     }
   }
 
-  let cap = 99.9;
-  const selectedIds = new Set(selectedQuestions.map((question) => question.id));
-  const a = (id) => selectedIds.has(id) ? getAnswer(answers, id) : undefined;
-
-  const hygieneAvg = avg([a("shower_frequency"), a("teeth"), a("deodorant"), a("laundry"), a("hair_wash")]);
-  const communicationAvg = avg([a("listening"), a("questions_skill"), a("humor"), a("light_talk"), 11 - a("interrupts")]);
-  const socialAvg = avg([a("empathy"), 11 - a("jealousy"), 11 - a("control_level"), 11 - a("aggression")]);
-  const homeAvg = avg([a("cooking"), a("clean_room"), a("room_smell")]);
-
-  if (noish(a("respects_boundaries"))) {
-    cap = Math.min(cap, 5);
-    hiddenReasons.push({ score: -50, text: "Красный флаг: личные границы не уважаются. Итог почти обнулен." });
+  // Every combo uses only explicitly answered questions; there are no real-life eligibility caps.
+  const answered = new Set(selectedQuestions.filter(q => answers[q.id] !== undefined && answers[q.id] !== null && answers[q.id] !== "").map(q => q.id));
+  const yes = (id) => answered.has(id) && yesish(answers[id]);
+  const atLeast = (id, threshold) => answered.has(id) && Number(answers[id]) >= threshold;
+  const combos = [
+    { when: yes("home_01") && yes("appearance_10"), delta: -12, text: "Стул-шкаф официально открыл модный дом." },
+    { when: yes("hygiene_03") && yes("hygiene_06"), delta: -12, text: "Парфюмерная контрабанда: футболка прошла таможню только с помощью духов." },
+    { when: yes("communication_04") && yes("date_09"), delta: -9, text: "У свидания есть свой штаб аналитиков. Бюджет ушёл на скриншоты." },
+    { when: yes("confidence_04") && yes("confidence_02"), delta: -10, text: "Сигма вышел из подъезда. Носки всё ещё ищет мама." },
+    { when: yes("gaming_03") && yes("money_05"), delta: -10, text: "Скин прокачан, кошелёк отправлен в зрители." },
+    { when: atLeast("gaming_hours", 6000) && atLeast("gaming_mmr", 9000), delta: 10, text: "За трудовой стаж в Dota присвоено почётное звание заведующего фонтаном." },
+    { when: yes("absurd_04") && yes("internet_14"), delta: 12, text: "Сова на скакалке победила на выборах. Тебе достался пост министра прыжков." },
+    { when: yes("date_13") && yes("money_08"), delta: 12, text: "Романтический гастротур по дошикам получил три звезды Мишлен в параллельной вселенной." },
+    { when: yes("communication_06") && yes("internet_16"), delta: 9, text: "Коты в стикерах разрешили международный конфликт." },
+    { when: yes("home_06") && atLeast("home_packages", 20), delta: -10, text: "Пакеты объявили независимость. Кухня больше не контролирует границу." }
+  ];
+  for (const combo of combos) {
+    if (!combo.when) continue;
+    raw += combo.delta;
+    hiddenReasons.push({ score: combo.delta, text: combo.text, combo: true });
   }
 
-  if (noish(a("accepts_no"))) {
-    cap = Math.min(cap, 4);
-    hiddenReasons.push({ score: -55, text: "Красный флаг: отказ нужно принимать спокойно. Без этого высокий результат невозможен." });
+  const vague = selectedQuestions.filter(q => answered.has(q.id) && q.type === "boolean" && ["maybe", "unknown"].includes(answers[q.id])).length;
+  if (selectedQuestions.length >= 20 && vague / selectedQuestions.length > 0.35) {
+    raw -= 6;
+    hiddenReasons.push({ score: -6, text: "Столько ответов «не знаю», что калькулятор тоже решил взять академ." });
   }
 
-  if (Number(a("age")) < 18) {
-    cap = Math.min(cap, 80);
-    hiddenReasons.push({ score: -5, text: "Возраст меньше 18: результат считается как шуточный шанс нормального общения со сверстниками." });
-  }
-
-  if (hygieneAvg <= 3.2) {
-    cap = Math.min(cap, 42);
-    hiddenReasons.push({ score: -22, text: "Гигиена слишком низкая. Харизма не должна пахнуть как старый рюкзак." });
-  }
-
-  if (Number(a("aggression")) >= 8) {
-    cap = Math.min(cap, 25);
-    hiddenReasons.push({ score: -25, text: "Высокая агрессия режет максимум результата." });
-  }
-
-  if (Number(a("control_level")) >= 8 || Number(a("jealousy")) >= 9) {
-    cap = Math.min(cap, 35);
-    hiddenReasons.push({ score: -20, text: "Контроль и ревность быстро ломают любой вайб." });
-  }
-
-  if (hygieneAvg >= 7.5 && communicationAvg >= 7 && socialAvg >= 7) {
-    raw += addCombo(hiddenReasons, 18, "Сильное комбо: уход + общение + адекватность. Это база, которая тащит результат.", hiddenReasons);
-  }
-
-  if (Number(a("confidence")) >= 9 && Number(a("empathy")) <= 4) {
-    raw += addCombo(hiddenReasons, -16, "Уверенность без эмпатии выглядит как режим главного героя в плохом смысле.", hiddenReasons);
-  }
-
-  if (Number(a("confidence")) <= 3 && communicationAvg >= 7) {
-    raw += addCombo(hiddenReasons, 7, "Скромность не убивает шанс, если ты нормально общаешься.", hiddenReasons);
-  }
-
-  if (Number(a("money_flex")) >= 8 && Number(a("money_stability")) >= 7) {
-    raw += addCombo(hiddenReasons, -12, "Деньги есть, но понты съедают часть бонуса.", hiddenReasons);
-  }
-
-  if (Number(a("dota_mmr")) >= 5500 && hygieneAvg >= 7 && communicationAvg >= 6.5) {
-    raw += addCombo(hiddenReasons, 8, "Неожиданно: высокий MMR не убил анкету, потому что остальная жизнь не развалилась.", hiddenReasons);
-  }
-
-  if (Number(a("dota_mmr")) >= 3000 && Number(a("shower_frequency")) <= 4) {
-    raw += addCombo(hiddenReasons, -18, "Комбо-проблема: Dota + редкий душ. Система попросила открыть окно.", hiddenReasons);
-  }
-
-  if (yesish(a("hospital_without_mom")) && yesish(a("book_barber")) && yesish(a("call_delivery")) && yesish(a("washing_machine"))) {
-    raw += addCombo(hiddenReasons, 12, "Взрослая аура: больница, парикмахер, доставка и стиралка проходят без рейд-босса мамы.", hiddenReasons);
-  }
-
-  if (yesish(a("chair_wardrobe")) && Number(a("clean_room")) <= 4) {
-    raw += addCombo(hiddenReasons, -10, "Стул-шкаф подтвержден. Бытовая зона просит помощи.", hiddenReasons);
-  }
-
-  if (Number(a("meme_language")) >= 8 && communicationAvg < 5.5) {
-    raw += addCombo(hiddenReasons, -9, "Мемы вместо речи работают плохо. Человеку нужен собеседник, а не паблик с картинками.", hiddenReasons);
-  }
-
-  if (Number(a("meme_language")) >= 6 && communicationAvg >= 7) {
-    raw += addCombo(hiddenReasons, 5, "Мемы не мешают, потому что ты все еще умеешь говорить нормально.", hiddenReasons);
-  }
-
-  if (Number(a("reply_minutes")) <= 1 && Number(a("message_spam")) >= 7) {
-    raw += addCombo(hiddenReasons, -12, "Переписка выглядит слишком голодной: мгновенный ответ + очередь сообщений.", hiddenReasons);
-  }
-
-  if (Number(a("reply_minutes")) >= 10 && Number(a("reply_minutes")) <= 120 && Number(a("message_spam")) <= 4 && communicationAvg >= 6) {
-    raw += addCombo(hiddenReasons, 6, "Темп переписки нормальный: без пропажи и без пулемета сообщений.", hiddenReasons);
-  }
-
-  if (homeAvg >= 7 && hygieneAvg >= 7) {
-    raw += addCombo(hiddenReasons, 7, "Быт и гигиена дружат. Это скучно, зато очень эффективно.", hiddenReasons);
-  }
-
-  if (yesish(a("joker_quotes")) && yesish(a("lonely_wolf_status")) && yesish(a("dark_lord_nick"))) {
-    raw += addCombo(hiddenReasons, -14, "Комбо темного волка: Джокер, статус и ник сошлись в одну тучу.", hiddenReasons);
-  }
-
-  if (yesish(a("can_choose_place")) && Number(a("initiative")) >= 5 && Number(a("initiative")) <= 7 && yesish(a("normal_pace"))) {
-    raw += addCombo(hiddenReasons, 9, "Свидательная база: место выбрано, инициатива есть, давление не включено.", hiddenReasons);
-  }
-
-  if (yesish(a("home_movie_too_early")) && noish(a("normal_pace"))) {
-    raw += addCombo(hiddenReasons, -16, "Темп общения слишком резкий. Алгоритм нажал тормоз.", hiddenReasons);
-  }
-
-  if (selectedQuestions.length >= 50) {
-    const tooPerfect = selectedQuestions.filter((q) => {
-      const value = getAnswer(answers, q.id);
-      if (q.type === "range") return Number(value) >= 9 && q.effect === "positive";
-      if (q.type === "boolean") return boolPower(value) >= 0.75 && q.yesScore > 0;
-      return false;
-    }).length;
-
-    if (tooPerfect / selectedQuestions.length > 0.72) {
-      raw += addCombo(hiddenReasons, -9, "Слишком идеальная анкета. Система подозревает режим 'я мамой клянусь'.", hiddenReasons);
-    }
-  }
-
-
-  const vagueAnswers = selectedQuestions.filter((q) => {
-    const value = getAnswer(answers, q.id);
-    return q.type === "boolean" && (value === "maybe" || value === "unknown");
-  }).length;
-
-  if (selectedQuestions.length >= 20 && vagueAnswers / selectedQuestions.length > 0.35) {
-    raw += addCombo(hiddenReasons, -6, "Слишком много ответов в стиле 'возможно'. Алгоритм почувствовал уклонение от ответственности.", hiddenReasons);
-  }
-
+  const cap = 99.9;
   const noise = signedNameNoise(userName);
   const normalized = maxPossible > 0 ? raw / Math.max(45, maxPossible * 0.28) : 0;
   let chance = sigmoid(normalized) * 100 + noise;
@@ -450,8 +240,3 @@ export function calculateAura({ selectedQuestions, answers, userName = "", resul
   };
 }
 
-function avg(values) {
-  const nums = values.map(Number).filter((v) => Number.isFinite(v));
-  if (!nums.length) return 5;
-  return nums.reduce((sum, value) => sum + value, 0) / nums.length;
-}
