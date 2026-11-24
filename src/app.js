@@ -5,7 +5,6 @@ const setupPanel = document.querySelector("#setupPanel");
 const quizPanel = document.querySelector("#quizPanel");
 const resultPanel = document.querySelector("#resultPanel");
 const categoryGrid = document.querySelector("#categoryGrid");
-const modeGrid = document.querySelector("#modeGrid");
 const quizForm = document.querySelector("#quizForm");
 const setupInfo = document.querySelector("#setupInfo");
 const quizInfo = document.querySelector("#quizInfo");
@@ -30,7 +29,6 @@ const booleanChoices = [
   { value: "no", label: "Нет" }
 ];
 
-let selectedMode = "mixed";
 let selectedCategoryIds = new Set(categories.map((category) => category.id));
 let selectedQuestions = [];
 let answers = {};
@@ -41,17 +39,6 @@ bindEvents();
 updateSetupInfo();
 
 function bindEvents() {
-  modeGrid.addEventListener("click", (event) => {
-    const button = event.target.closest(".mode-card");
-    if (!button) return;
-
-    selectedMode = button.dataset.mode;
-    document.querySelectorAll(".mode-card").forEach((item) => item.classList.remove("is-active"));
-    button.classList.add("is-active");
-    renderCategories();
-    updateSetupInfo();
-  });
-
   document.querySelector("#selectAllCategories").addEventListener("click", () => {
     selectedCategoryIds = new Set(categories.map((category) => category.id));
     renderCategories();
@@ -111,18 +98,11 @@ function renderCategories() {
 }
 
 function countQuestionsForCategory(categoryId) {
-  return questions.filter((q) => q.category === categoryId && matchesMode(q)).length;
-}
-
-function matchesMode(question) {
-  if (selectedMode === "mixed") return true;
-  if (selectedMode === "serious") return question.tone !== "funny";
-  if (selectedMode === "funny") return question.tone !== "serious";
-  return true;
+  return questions.filter((q) => q.category === categoryId).length;
 }
 
 function getFilteredQuestions() {
-  return questions.filter((question) => selectedCategoryIds.has(question.category) && matchesMode(question));
+  return questions.filter((question) => selectedCategoryIds.has(question.category));
 }
 
 function updateSetupInfo() {
@@ -143,8 +123,8 @@ function buildQuiz() {
 
   const limit = questionLimitSelect.value;
   selectedQuestions = limit === "all"
-    ? shuffle(filtered, `${userNameInput.value}-${selectedMode}-all`)
-    : pickQuestions(filtered, Number(limit), `${userNameInput.value}-${selectedMode}-${selectedCategoryIds.size}`);
+    ? shuffle(filtered, `${userNameInput.value}-all`)
+    : pickQuestions(filtered, Number(limit), `${userNameInput.value}-${selectedCategoryIds.size}`);
 
   answers = Object.fromEntries(selectedQuestions.map((question) => [question.id, undefined]));
   currentQuestionIndex = 0;
