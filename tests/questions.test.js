@@ -18,7 +18,7 @@ const validateResult = (result, expectedCount) => {
   check(result.categoryScores.every(item => Number.isFinite(item.score) && item.score >= 0 && item.score <= 100), "Invalid category score");
 };
 test("bank is unique, comedy-only and has valid input metadata", () => {
-  check(questions.length === 220, "Wrong bank size");
+  check(questions.length === 148, "Wrong bank size");
   check(new Set(questions.map(q => q.id)).size === questions.length, "Duplicate ID");
   check(new Set(questions.map(q => q.title)).size === questions.length, "Duplicate question");
   check(categories.length === 12 && categories.every(c => questions.some(q => q.category === c.id)), "Empty category");
@@ -52,14 +52,14 @@ test("full bank and category subsets work in all result styles", () => {
   }
 });
 test("a hidden combination requires both explicit answers and selected questions", () => {
-  const selectedQuestions = questions.filter(q => ["home_01", "appearance_10"].includes(q.id));
-  const both = calculateAura({selectedQuestions, answers: {home_01: "yes", appearance_10: "yes"}});
-  check(both.reasons.some(reason => reason.includes("модный дом")), "Missing combo");
+  const selectedQuestions = questions.filter(q => ["home_04", "home_02"].includes(q.id));
+  const both = calculateAura({selectedQuestions, answers: {home_04: "yes", home_02: "yes"}});
+  check(both.reasons.some(reason => reason.includes("Стул заняли")), "Missing combo");
   for (const config of [
-    {selectedQuestions, answers: {home_01: "yes"}},
-    {selectedQuestions: selectedQuestions.slice(0, 1), answers: {home_01: "yes", appearance_10: "yes"}}
+    {selectedQuestions, answers: {home_04: "yes"}},
+    {selectedQuestions: selectedQuestions.slice(0, 1), answers: {home_04: "yes", home_02: "yes"}}
   ]) {
-    check(!calculateAura(config).reasons.some(reason => reason.includes("модный дом")), "False combo");
+    check(!calculateAura(config).reasons.some(reason => reason.includes("Стул заняли")), "False combo");
   }
 });
 test("verdict style does not change the numeric result", () => {
